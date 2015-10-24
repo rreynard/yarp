@@ -7,6 +7,7 @@ function AbstractServerObject() {
         getProperty : null, // e.g. "file=5"
         defaultHeader : {"Content-Type" : "text/plain"},
         defaultStatus : 200,
+        defaultCreateServerFunction : http.createServer,
         fullUrl : "http://localhost:1515"
     }
     
