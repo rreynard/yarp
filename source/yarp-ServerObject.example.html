@@ -1,0 +1,8 @@
+<code>
+var aso = new AbstractServerObject()
+.conf("port", 1515)
+.on("end", function() {
+    return "Hello World!"
+})
+.run();
+</code>
