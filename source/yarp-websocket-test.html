@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+    <head></head>
+    <body>
+        <script>
+            var ws = new WebSocket("ws://localhost:1581");
+            
+            ws.onopen = function() {
+                ws.send('Hello');
+            };
+            
+            ws.onmessage = function(msg) {
+                console.log(msg.data);
+            };
+            
+            ws.onerror = function(e) {
+                console.log('ws error: ' + e);
+            };
+            
+            console.log(ws);
+        </script>
+    </body>
+</html>
