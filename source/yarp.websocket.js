@@ -74,12 +74,11 @@ function WebSocketObject(opt, statechange) {
         var pdata = JSON.parse(data);
         if(typeof pdata === "object") {
             if(typeof pdata["action"] !== "undefined") {
-                if(typeof this[pdata.action + "Action"] === "function") {
-                    this[pdata.action + "Action"](pdata);
+                if(typeof that[pdata.action + "Action"] === "function") {
+                    that[pdata.action + "Action"].bind(that)(pdata, this);
                 }
             }
         }
-        this.ondata();
     }
     
     this.onend = function(code, reason) {
@@ -171,7 +170,6 @@ function WebSocketBalancer(port) {
             slots : this.config.max_slots_each
         }, this.socketStates)
         .on("fullslots", this.delegateConnection)
-        .on("xscr", this.connectSockets)
         .state.update;
         
         console.log("Added Socket: ", this.config.cid );
