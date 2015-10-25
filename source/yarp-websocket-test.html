@@ -5,7 +5,23 @@
             var ws = new WebSocket("ws://localhost:1580");
             
             ws.onopen = function() {
-                ws.send('Hello');
+                ws.send(JSON.stringify({
+                    action : "insert",
+                    coll : "u_test",
+                    doc : { t : new Date().getTime() }
+                }));
+                
+                ws.send(JSON.stringify({
+                    action : "deleteMany",
+                    coll : "u_test",
+                    select : { a : 1 }
+                }));
+                
+                ws.send(JSON.stringify({
+                    action : "find",
+                    coll : "u_test",
+                    select : {}
+                }));
             };
             
             ws.onmessage = function(msg) {
