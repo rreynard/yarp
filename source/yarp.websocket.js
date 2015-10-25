@@ -37,6 +37,7 @@ function WebSocketObject(opt, statechange) {
                 conn.sid = that.state.sid++;
                 that.isAvail[that.config.socket_id] = { slotsAvail : that.state.slotsAvail }
                 that.state.connections[conn.sid] = conn;
+                if(that.state.sid > 10) { that.state.flush();}
             }
         },
         get removeSlot() {
@@ -44,6 +45,25 @@ function WebSocketObject(opt, statechange) {
                 if(typeof conn["sid"] !== "undefined") {
                     that.state.connections[conn.sid] = undefined;
                     that.state.current_slots -= 1;
+                }
+            }
+        },
+        get flush() {
+            return function() {
+                var nConns = [], i, keys = Object.keys(that.state.connections);
+                for(i = 0; i < keys.length; i++) {
+                    if(typeof that.state.connections[keys[i]] !== "undefined") {
+                        nConns.push(that.state.connections[keys[i]]);
+                    }
+                }
+                that.state.connections = {};
+                that.state.current_slots = 0;
+                that.state.sid = 1;
+                for(i = 0; i < nConns.length; i++) {
+                    that.state.connections[that.state.sid] = nConns[i];
+                    that.state.connections[that.state.sid].sid = that.state.sid;
+                    that.state.sid = that.state.sid + 1;
+                    that.state.current_slots = that.state.current_slots + 1;
                 }
             }
         }
