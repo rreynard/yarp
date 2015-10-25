@@ -15,6 +15,10 @@ function WebSocketObject(opt, statechange) {
     }
     
     this.isAvail = statechange || [];
+    // cross Socket connection
+    this.xsc = [];
+    // cross Socket connection request
+    this.onxscr = function(sid1, sid2) {};
     
     this.state = {
         current_slots : 0,
@@ -71,9 +75,20 @@ function WebSocketObject(opt, statechange) {
     
     //interface methods
     this.ondata = function(text) {}
+    this.onBeforeDataRender = function(data) {
+        var pdata = JSON.parse(data);
+        if(typeof pdata === "object") {
+            if(typeof pdata["xscr"] !== "undefined") {
+                this.xscr(this.config.socket_id, pdata.xscr);
+            }
+        }
+        this.ondata();
+    }
+    
     this.onend = function(code, reason) {
         this.detach(this);
     }
+    
     this.onbinary = function(stream) {}
     this.onfullslots = function(conn) {}
     
@@ -86,7 +101,7 @@ function WebSocketObject(opt, statechange) {
         if(that.state.addSlot(conn) === null) {that.onfullslots(conn); return};
         conn.detach = that.state.removeSlot;
         conn.detach.bind(that.state);
-        conn.on("text", that.ondata.bind(conn));
+        conn.on("text", that.onBeforeDataRender.bind(conn));
         conn.on("binary", that.onbinary.bind(conn));
         conn.on("close", that.onend.bind(conn));
         return that;
@@ -103,68 +118,92 @@ function WebSocketObject(opt, statechange) {
 // more functionality regarding user-slots etc.
 function WebSocketBalancer(port) {
 
-    
-    this.cluster = {
+    var that = this;
+    this.sockets = {
         
     };
     
-    this.clusterStates = [];
+    this.socketStates = [];
     
     this.config = {
         hostname : "localhost",
         port: port,
         max_slots_each : 64,
         cid : 1,
-        cports : 1581
+        cports : port + 1
     };
     
-    this.getClusterKeys = function() {
-        return Object.keys(this.cluster);
+    this.getSocketKeys = function() {
+        return Object.keys(this.sockets);
     }
     
     this.each = function(fn) {
-        var keys = this.getClusterKeys(), i;
+        var keys = this.getSocketKeys(), i;
         for(i = 0; i < keys.length; i++) {
-            fn.bind(this.cluster[keys[i]])(keys[i])
+            fn.bind(this.sockets[keys[i]])(keys[i])
         }
         return this;
     }
     
-    this.getClusterIdFromIndex = function(index) {
+    this.getSocketIdFromIndex = function(index) {
         return md5(index).substring(0,8)
     }
     
-    this.getFirstAvailClusterId = function()  {
-        return this.getClusterIdFromIndex(parseInt(Object.keys(this.clusterStates)[0]));
+    this.getFirstAvailSocketId = function()  {
+        return this.getSocketIdFromIndex(parseInt(Object.keys(this.socketStates)[0]));
     };
     
-    this.getFirstAvailCluster = function() {
-        return this.cluster[this.getFirstAvailClusterId()];
+    this.getFirstAvailSocket = function() {
+        return this.sockets[this.getFirstAvailSocketId()];
     }
     
-    this.getCluster = function(index) {
-        var cluster = this.cluster[this.getClusterIdFromIndex(index)];
-        if(typeof cluster !== "undefined") {
-            return cluster;
+    this.getSocket = function(index) {
+        var socket = this.sockets[this.getSocketIdFromIndex(index)];
+        if(typeof socket !== "undefined") {
+            return socket;
         }
         return null;
     }
     
-    this.newClustered = function() {
-        this.cluster[this.getClusterIdFromIndex(this.config.cid)] = new WebSocketObject({
+    // @TODO define usage
+    this.connectSockets = function(s1id, s2id) {
+        if(typeof this.sockets[s1id] !== "undefined" && typeof this.sockets[s2id] !== "undefined") {
+            this.sockets[s1id].xsc.push(s2id);
+            this.sockets[s2id].xsc.push(s1id);
+        }
+    }
+    
+    // creates a new Socket in 'this.Socket'
+    this.addSocket = function() {
+    
+        this.sockets[this.getSocketIdFromIndex(this.config.cid)] = new WebSocketObject({
             port : this.config.cports++,
             id : this.config.cid,
-        }, this.clusterStates).on("fullslots", this.delegateConnection).state.update;
+            slots : this.config.max_slots_each
+        }, this.socketStates)
+        .on("fullslots", this.delegateConnection)
+        .on("xscr", this.connectSockets)
+        .state.update;
+        
+        console.log("Added Socket: ", this.config.cid );
         this.config.cid++;
-        return this.cluster[this.getClusterIdFromIndex(this.config.cid-1)];
+        return this.sockets[this.getSocketIdFromIndex(this.config.cid-1)];
+    }
+    
+    // creates n amount of Sockets in 'this.Socket'
+    this.socketSwarm = function(amount) {
+        for(var i = 0; i < amount; i++) {
+            this.addSocket();
+        }
     }
     
     this.delegateConnection = function(conn) {
-        if(this.clusterStates.length === 0) {
-            this.newClustered().handle(conn);
+        if(that.socketStates.length === 0) {
+            that.addSocket().handle(conn);
         }
         console.log("Delegating Connection...");
-        this.getFirstAvailCluster().handle(conn);        
+        console.log(that.socketStates);
+        that.getFirstAvailSocket().handle(conn);        
     };
     
     this.run = function() {
@@ -175,9 +214,8 @@ function WebSocketBalancer(port) {
     return this;
 }
 
-var wsb = new WebSocketBalancer(1580);
-wsb.newClustered();
-wsb.newClustered();
+var wsb = new WebSocketBalancer(1580).run();
+wsb.socketSwarm(5);
 wsb.each(function() {
     // this = WebSocketObject
     this.ondata = function(text) {
@@ -186,8 +224,10 @@ wsb.each(function() {
         this.sendText(text.toUpperCase());
     } 
 });
-console.log(wsb.getFirstAvailCluster().on("end", function() {
+
+console.log(wsb.getFirstAvailSocket().on("end", function() {
     console.log("End Connection ID: " + this.sid);
     this.detach(this);
 }).run());
+
 module.exports = WebSocketObject;
