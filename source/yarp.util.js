@@ -37,6 +37,8 @@ module.exports = {
     hexEncode : hexEncode,
     hexDecode : hexDecode,
     isArray : isArray,
-    clone : clone
+    clone : clone,
+    isset : isset,
+    hash : hash
 }
 
