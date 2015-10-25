@@ -15,10 +15,6 @@ function WebSocketObject(opt, statechange) {
     }
     
     this.isAvail = statechange || [];
-    // cross Socket connection
-    this.xsc = [];
-    // cross Socket connection request
-    this.onxscr = function(sid1, sid2) {};
     
     this.state = {
         current_slots : 0,
@@ -78,8 +74,10 @@ function WebSocketObject(opt, statechange) {
     this.onBeforeDataRender = function(data) {
         var pdata = JSON.parse(data);
         if(typeof pdata === "object") {
-            if(typeof pdata["xscr"] !== "undefined") {
-                this.xscr(this.config.socket_id, pdata.xscr);
+            if(typeof pdata["action"] !== "undefined") {
+                if(typeof this[pdata.action + "Action"] !== "undefined") {
+                    
+                }
             }
         }
         this.ondata();
@@ -165,14 +163,6 @@ function WebSocketBalancer(port) {
         return null;
     }
     
-    // @TODO define usage
-    this.connectSockets = function(s1id, s2id) {
-        if(typeof this.sockets[s1id] !== "undefined" && typeof this.sockets[s2id] !== "undefined") {
-            this.sockets[s1id].xsc.push(s2id);
-            this.sockets[s2id].xsc.push(s1id);
-        }
-    }
-    
     // creates a new Socket in 'this.Socket'
     this.addSocket = function() {
     
@@ -230,4 +220,7 @@ console.log(wsb.getFirstAvailSocket().on("end", function() {
     this.detach(this);
 }).run());
 
-module.exports = WebSocketObject;
+module.exports = { 
+    WebSocketObject : WebSocketObject,
+    WebSocketBalancer : WebSocketBalancer
+}
