@@ -68,15 +68,14 @@ function WebSocketObject(opt, statechange) {
             }
         }
     }
-    
     //interface methods
     this.ondata = function(text) {}
     this.onBeforeDataRender = function(data) {
         var pdata = JSON.parse(data);
         if(typeof pdata === "object") {
             if(typeof pdata["action"] !== "undefined") {
-                if(typeof this[pdata.action + "Action"] !== "undefined") {
-                    
+                if(typeof this[pdata.action + "Action"] === "function") {
+                    this[pdata.action + "Action"](pdata);
                 }
             }
         }
@@ -203,22 +202,6 @@ function WebSocketBalancer(port) {
     
     return this;
 }
-
-var wsb = new WebSocketBalancer(1580).run();
-wsb.socketSwarm(5);
-wsb.each(function() {
-    // this = WebSocketObject
-    this.ondata = function(text) {
-        // this = Connection
-        console.log("BOUNDATA: " + text);
-        this.sendText(text.toUpperCase());
-    } 
-});
-
-console.log(wsb.getFirstAvailSocket().on("end", function() {
-    console.log("End Connection ID: " + this.sid);
-    this.detach(this);
-}).run());
 
 module.exports = { 
     WebSocketObject : WebSocketObject,
