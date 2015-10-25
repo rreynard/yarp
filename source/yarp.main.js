@@ -8,6 +8,8 @@ var http = require("http"),
     wsb = new WebSocketBalancer(1580).run(),
     mch = new MongoConnectionHandler();
 
+GLOBAL.Yarp = {};
+
 function valid(data, pArr) {
     for(var i = 0; i < pArr.length; i++) {
         if(typeof data[pArr[i]] === "undefined") return false;
@@ -67,7 +69,7 @@ mch.onconnect = function(err, db) {
     });
 }
 
-mch.connect("mongodb://localhost:27017/test");
+mch.connect("mongodb://localhost:27017/yarp");
 
 
     
