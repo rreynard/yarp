@@ -67,7 +67,7 @@ mch.onconnect = function(err, db) {
     });
 }
 
-mch.connect("mongodb://localhost:27017/test");
+mch.connect("mongodb://localhost:27017/yarp");
 
 
     
