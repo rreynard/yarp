@@ -1,4 +1,4 @@
-
+var md5 = require("md5");
 function hexEncode(str, dontMerge) {
 
     var arr = [], i;
@@ -17,11 +17,7 @@ function hexDecode(str, dontMerge) {
     return !dontMerge ? arr.join("") : arr;
 }
 
-function isArray(item) {
-
-    return typeof item["push"] !== "undefined"
-
-}
+function isArray(item) { return typeof item["push"] !== "undefined" }
 
 function clone(obj, properties, strict) {
     var keys = Object.keys(properties), i;
@@ -30,6 +26,10 @@ function clone(obj, properties, strict) {
             obj[keys[i]] = properties[keys[i]]
         }
     }
+}
+
+function hash(str) {
+    return md5(str).substring(0, 8)
 }
 
 module.exports = {
