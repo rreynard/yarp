@@ -118,6 +118,18 @@ function WebSocketBalancer(port) {
         cports : 1581
     };
     
+    this.getClusterKeys = function() {
+        return Object.keys(this.cluster);
+    }
+    
+    this.each = function(fn) {
+        var keys = this.getClusterKeys(), i;
+        for(i = 0; i < keys.length; i++) {
+            fn.bind(this.cluster[keys[i]])(keys[i])
+        }
+        return this;
+    }
+    
     this.getClusterIdFromIndex = function(index) {
         return md5(index).substring(0,8)
     }
@@ -166,10 +178,15 @@ function WebSocketBalancer(port) {
 var wsb = new WebSocketBalancer(1580);
 wsb.newClustered();
 wsb.newClustered();
-console.log(wsb.getFirstAvailCluster().on("data", function(text) {
-    console.log("Received message : " + text);
-    this.sendText(text);
-}).on("end", function() {
+wsb.each(function() {
+    // this = WebSocketObject
+    this.ondata = function(text) {
+        // this = Connection
+        console.log("BOUNDATA: " + text);
+        this.sendText(text.toUpperCase());
+    } 
+});
+console.log(wsb.getFirstAvailCluster().on("end", function() {
     console.log("End Connection ID: " + this.sid);
     this.detach(this);
 }).run());
