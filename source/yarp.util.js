@@ -18,6 +18,7 @@ function hexDecode(str, dontMerge) {
 }
 
 function isArray(item) { return typeof item["push"] !== "undefined" }
+function isset(item) {return typeof item !== "undefined"}
 
 function clone(obj, properties, strict) {
     var keys = Object.keys(properties), i;
@@ -36,6 +37,8 @@ module.exports = {
     hexEncode : hexEncode,
     hexDecode : hexDecode,
     isArray : isArray,
-    clone : clone
+    clone : clone,
+    isset : isset,
+    hash : hash
 }
 
