@@ -23,8 +23,19 @@ function isArray(item) {
 
 }
 
+function clone(obj, properties, strict) {
+    var keys = Object.keys(properties), i;
+    for(i = 0; i < keys.length; i++) {
+        if(typeof obj[keys[i]] === "undefined" || !strict) {
+            obj[keys[i]] = properties[keys[i]]
+        }
+    }
+}
+
 module.exports = {
     hexEncode : hexEncode,
-    hexDecode : hexDecode
+    hexDecode : hexDecode,
+    isArray : isArray,
+    clone : clone
 }
 

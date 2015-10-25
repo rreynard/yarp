@@ -32,14 +32,9 @@ function AbstractServerObject() {
         return this.config.fullUrl;
     }
     
-    this.setGetProperty = function(string) {
-    
-        this.config.getProperty = string;
-    
-    }
+    this.setGetProperty = function(string) { this.config.getProperty = string; }
     
     this.conf = function(property, value) {
-    
         if("undefined" !== typeof this.config[property]) this.config[property] = value;
         return this;
     }
@@ -47,7 +42,7 @@ function AbstractServerObject() {
     this.run = function() {
         var that = this;
         this.cache.store("requestEndFunc", that.onend());
-        this.serverThread = http.createServer(function(request, response) {
+        this.serverThread = this.defaultCreateServerFunction(function(request, response) {
             if((that.config.getProperty !== null ? request.url.search(that.config.getProperty) !== -1 : true)) {
                 response.writeHead(that.config.defaultStatus, that.config.defaultHeader);
                 that.onrequest(request, response);
