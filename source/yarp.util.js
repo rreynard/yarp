@@ -18,6 +18,7 @@ function hexDecode(str, dontMerge) {
 }
 
 function isArray(item) { return typeof item["push"] !== "undefined" }
+function isset(item) {return typeof item !== "undefined"}
 
 function clone(obj, properties, strict) {
     var keys = Object.keys(properties), i;
