@@ -1,3 +1,9 @@
+if(typeof GLOBAL === "undefined") {
+    GLOBAL = {
+        Yarp : {}
+    };
+}
+
 var Yarp = {};
 
 Yarp.Map = function() {}
@@ -20,5 +26,16 @@ Yarp.Entity = {
     PlayerCharacter : function() {
         this.$use(Yarp.Entity.BaseEntity);
         this.$use(Yarp.Entity.PlayerCharacter);
+    },
+    NonPlayerCharacter : function() {
+        this.$use(Yarp.Entity.BaseEntity);
+        this.$use(Yarp.Entity.NonPlayerCharacter);
     }
 }
+
+
+
+GLOBAL.Yarp.Storage = Yarp.Storage;
+GLOBAL.Yarp.Entity = Yarp.Entity;
+GLOBAL.Yarp.CONSTANTS = {};
+GLOBAL.Yarp.System = {};

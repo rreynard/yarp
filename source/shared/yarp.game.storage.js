@@ -1,8 +1,12 @@
-Yarp.Storage.BaseStorage.prototype.traits = {
-    
-    items : []
-
+GLOBAL.Yarp.CONSTANTS.STORAGE.ITEM_SLOTS = {
+    HEAD : 0,
+    CHEST : 1,
+    HANDS : 2,
+    LEGS : 3,
+    FEET : 4
 }
+
+Yarp.Storage.BaseStorage.prototype.traits = {  items : [] }
 
 Yarp.Storage.Inventory.prototype.traits = {
     addItems : function(items) {
