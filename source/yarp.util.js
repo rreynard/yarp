@@ -17,11 +17,7 @@ function hexDecode(str, dontMerge) {
     return !dontMerge ? arr.join("") : arr;
 }
 
-function isArray(item) {
-
-    return typeof item["push"] !== "undefined"
-
-}
+function isArray(item) { return typeof item["push"] !== "undefined" }
 
 function clone(obj, properties, strict) {
     var keys = Object.keys(properties), i;
