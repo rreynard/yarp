@@ -4,38 +4,98 @@ if(typeof GLOBAL === "undefined") {
     };
 }
 
-var Yarp = {};
+GLOBAL.Yarp.Base = {};
+GLOBAL.Yarp.Base.BaseObject = function() {
+    this.$use(GLOBAL.Yarp.Base.BaseObject)
+    return this;
+}
 
-Yarp.Map = function() {}
-
-Yarp.Storage = {
-    BaseStorage : function() { 
-        this.$use(Yarp.Storage.BaseStorage)
+GLOBAL.Yarp.Storage = {
+    AbstractStorage : function() {
+        this.$use(GLOBAL.Yarp.Base.BaseObject)
+        this.$use(GLOBAL.Yarp.Storage.AbstractStorage);
+        return this;
     },
-    // interface for BaseStorage
+    // interface for AbstractStorage
     Inventory : function() { 
-        this.$use(Yarp.Storage.BaseStorage);
-        this.$use(Yarp.Storage.Inventory);
+        this.$use(GLOBAL.Yarp.Storage.AbstractStorage, true);
+        this.$use(GLOBAL.Yarp.Storage.Inventory);
+        return this;
     }
 }
 
-Yarp.Entity = {
+GLOBAL.Yarp.Entity = {
     BaseEntity : function() {
-        this.$use(Yarp.Entity.BaseEntity)
+        this.$use(GLOBAL.Yarp.Entity.BaseEntity);
+        return this;
     },
     PlayerCharacter : function() {
-        this.$use(Yarp.Entity.BaseEntity);
-        this.$use(Yarp.Entity.PlayerCharacter);
+        this.$use(GLOBAL.Yarp.Entity.BaseEntity);
+        this.$use(GLOBAL.Yarp.Entity.PlayerCharacter);
+        return this;
     },
     NonPlayerCharacter : function() {
-        this.$use(Yarp.Entity.BaseEntity);
-        this.$use(Yarp.Entity.NonPlayerCharacter);
+        this.$use(GLOBAL.Yarp.Entity.BaseEntity);
+        this.$use(GLOBAL.Yarp.Entity.NonPlayerCharacter);
+        return this;
     }
 }
 
-
-
-GLOBAL.Yarp.Storage = Yarp.Storage;
-GLOBAL.Yarp.Entity = Yarp.Entity;
 GLOBAL.Yarp.CONSTANTS = {};
-GLOBAL.Yarp.System = {};
+
+// dev/production
+GLOBAL.Yarp.CONSTANTS.CONTEXT = 0;
+GLOBAL.Yarp.FE = {};
+GLOBAL.Yarp.FE.Cache = function() {
+    this.$use(GLOBAL.Yarp.Storage.AbstractStorage)
+};
+
+//reserved for later usage with frontend javascript
+GLOBAL.Yarp.FE.Plugin = {};
+GLOBAL.Yarp.FE.Plugin.Upstream = function() {
+    this.$use(GLOBAL.Yarp.PLugin.Upstream);
+}
+
+
+GLOBAL.Yarp.Interface = {
+    AbstractInterface : function() {
+        this.$use(GLOBAL.Yarp.Interface.AbstractInterface)
+        return this;
+    }
+};
+
+GLOBAL.Yarp.System = {
+    // Base Map Interface
+    Map : function() {
+        this.$use(GLOBAL.Yarp.System.Map);
+        return this;
+    },
+    Grid : function(gridCells) {
+        this.$use(GLOBAL.Yarp.Storage.AbstractStorage, true);
+        this.$use(GLOBAL.Yarp.System.Grid);
+        return this;
+    },
+    // yields events
+    GridCell : function() {
+        this.$use(GLOBAL.Yarp.Storage.AbstractStorage, true);
+        this.$use(GLOBAL.Yarp.System.GridCell);
+        return this;
+    },
+    // describes an event inside a GridCell
+    GridCellItem : function() {
+        this.$use(GLOBAL.Yarp.System.GridCellItem);
+        return this;
+    },
+    // part of the map (clustered)
+    MapCluster : function() {
+        this.$use(GLOBAL.Yarp.Storage.AbstractStorage, true);
+        this.$use(GLOBAL.Yarp.System.MapCluster);
+        return this;
+    },
+    // Backend specific runtime do compute events etc...
+    MapRuntime : function() {
+        this.$use(GLOBAL.Yarp.System.MapRuntime);
+        return this;
+    }
+    
+};
