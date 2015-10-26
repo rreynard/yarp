@@ -7,9 +7,12 @@ var http = require("http"),
     MongoConnectionHandler = require("./yarp.mongo-util.js"),
     wsb = new WebSocketBalancer(1580).run(),
     mch = new MongoConnectionHandler();
+ 
+require("./shared/traits.js");
 
-GLOBAL.Yarp = {};
+if(typeof GLOBAL["Yarp"] === "undefined") GLOBAL.Yarp = {};
 
+// shorthand function
 function valid(data, pArr) {
     for(var i = 0; i < pArr.length; i++) {
         if(typeof data[pArr[i]] === "undefined") return false;
@@ -17,10 +20,13 @@ function valid(data, pArr) {
     return true;
 }
 
+// callback if mongoDB connect attempt is successful
 mch.onconnect = function(err, db) {
     wsb.socketSwarm(5);
     wsb.each.bind(wsb)(function() {
-        // Actions
+    
+        // Actions, called with websocket request e.g. {'action' : 'find', 'coll' : 'test', 'select' : {'a' : 4}}
+        //   vvvv                                                  ^^^^^^
         this.findAction = function(data, conn) {
             console.log("requestAction");
             

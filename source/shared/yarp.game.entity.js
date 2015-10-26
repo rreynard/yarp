@@ -1,3 +1,4 @@
+GLOBAL.Yarp.CONSTANTS.ENTITY = {};
 GLOBAL.Yarp.CONSTANTS.ENTITY.DIRECTIONS = {
     UP : 0,
     LEFT : 1,
@@ -40,4 +41,8 @@ GLOBAL.Yarp.Entity.PlayerCharacter.prototype.traits = {
 
     
 
+}
+
+if(GLOBAL.Yarp.CONSTANTS.CONTEXT === 0) {
+    console.log("Yarp.Entity done");
 }

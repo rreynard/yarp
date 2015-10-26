@@ -9,4 +9,6 @@
         - inventory
     
 **/
-console.log(GLOBAL);
+if(GLOBAL.Yarp.CONSTANTS.CONTEXT === 0) {
+    console.log(GLOBAL);
+}
