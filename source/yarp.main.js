@@ -1,5 +1,6 @@
 var http = require("http"),
     util = require("./yarp.util.js"),
+    fs = require("fs"),
     YarpLibrary = require("./yarp.library.js"),
     AbstractServerObject = require("./yarp.server.js"),
     WebSocket = require("./yarp.websocket.js").WebSocketObject,
@@ -22,14 +23,21 @@ function valid(data, pArr) {
 
 // callback if mongoDB connect attempt is successful
 mch.onconnect = function(err, db) {
+    
+    console.log("info mongodb_connected");
+    
+}
+
+mch._connect.bind(mch)("mongodb://localhost:27017/yarp");
+
+function mchReady() {
     wsb.socketSwarm(5);
+    //var t = this.$get("yarp_main");
     wsb.each.bind(wsb)(function() {
     
         // Actions, called with websocket request e.g. {'action' : 'find', 'coll' : 'test', 'select' : {'a' : 4}}
         //   vvvv                                                  ^^^^^^
         this.findAction = function(data, conn) {
-            console.log("requestAction");
-            
             if(valid(data, ["coll", "select"])) {
                 mch.$get(data["coll"]).find(data["select"]).toArray(function(err, res) {
                     conn.sendText(JSON.stringify(res));
@@ -38,8 +46,16 @@ mch.onconnect = function(err, db) {
             
         }
         
-        this.insertAction = function(data, conn) {
+        this.findManyAction = function(data, conn) {            
+            if(valid(data, ["coll", "select"])) {
+                mch.$get(data["coll"]).findMany(data["select"]).toArray(function(err, res) {
+                    conn.sendText(JSON.stringify(res));
+                })
+            }
+            
+        }
         
+        this.insertAction = function(data, conn) {
             if(valid(data, ["coll", "doc"])) {
                 mch.$get(data["coll"]).insert(data["doc"], function(err, res) {
                     if(err) console.log(err);
@@ -73,9 +89,34 @@ mch.onconnect = function(err, db) {
         }
         
     });
+    
+    var styles = fs.readFileSync("./fe/css/style.css").toString();
+    var aso = new AbstractServerObject().conf("port", 1515)
+    .on("end", function() {
+        
+    })
+    .on("request", function(request, response, GET) {
+
+    })
+    .filter("/style.css", function(response, getHeaders) {
+        response.writeHead(200,{"Content-Type" : "text/css"});
+        response.write(styles);
+        response.end(0);
+    })
+    .filter("/yarp", function(response, getHeaders) {
+        response.writeHead(200, {"Content-Type" : "text/html"});
+        response.HTML.content.head.add("<link rel='stylesheet' href='style.css'>");
+        response.HTML.content.body.add("<div class='topbar'><button class='topbar__button'>button1</button></div>");
+        response.wait(4);
+    })
+    .run();
 }
 
-mch.connect("mongodb://localhost:27017/yarp");
+setTimeout(function() {
+    if(mch.isReady) {mchReady()}
+}, 2000);
+
+
 
 
     
