@@ -9,7 +9,6 @@ Object.prototype.$use = function(props, getChilds) {
         try {
             var result = props.bind(props)(),
             addKeys = Object.keys(props);
-            console.log(result);
             for(i = 0; i < addKeys.length; i++) {
                 this[addKeys[i]] = result[addKeys[i]]
             }

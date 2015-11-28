@@ -11,7 +11,22 @@ var http = require("http"),
  
 require("./shared/traits.js");
 
-if(typeof GLOBAL["Yarp"] === "undefined") GLOBAL.Yarp = {};
+function loadYarpGLOBAL() {
+    
+    require("./shared/yarp.game.def.js");
+    require("./shared/yarp.game.core.js");
+    require("./shared/yarp.game.storage.js");
+    require("./shared/yarp.game.entity.js");
+    require("./be/yarp.system.js");
+    require("./shared/yarp.game.main.js");
+    
+}
+
+GLOBAL = {
+    Yarp : {}
+}
+
+loadYarpGLOBAL();
 
 // shorthand function
 function valid(data, pArr) {
@@ -100,14 +115,27 @@ function mchReady() {
     })
     .filter("/style.css", function(response, getHeaders) {
         response.writeHead(200,{"Content-Type" : "text/css"});
-        response.write(styles);
+        response.emitPlain = true;
+        response.DATA.content.body.add(styles);
         response.end(0);
     })
     .filter("/yarp", function(response, getHeaders) {
         response.writeHead(200, {"Content-Type" : "text/html"});
-        response.HTML.content.head.add("<link rel='stylesheet' href='style.css'>");
-        response.HTML.content.body.add("<div class='topbar'><button class='topbar__button'>button1</button></div>");
-        response.wait(4);
+        response.DATA.content.head.add("<link rel='stylesheet' href='style.css'>");
+        response.DATA.content.body.add("<div class='topbar'><button class='topbar__button'>button1</button></div>");
+        response.wait(0);
+    })
+    .filter("/yarp-json", function(response, getHeaders) {
+        response.writeHead(200, {"Content-Type" : "text/plain"});
+        response.emitPlain = true;
+        property = GLOBAL.Yarp;
+        
+        if(typeof getHeaders["p"] !== "undefined") {
+            if(typeof GLOBAL.Yarp[getHeaders["p"]] !== "undefined") property = GLOBAL.Yarp[getHeaders["p"]];
+        }
+        
+        response.DATA.content.body.add(JSON.stringify(property));
+        response.wait(0);
     })
     .run();
 }

@@ -4,8 +4,7 @@ var http = require("http"),
     md5 = require("md5"),
     YarpLibrary = require("./yarp.library.js");
 function toHtml() {
-    console.log(this);
-    return this.wrap.replace("%%CONTENT%%", this.data.join("\n"));
+    return this.wrap.replace("%%CONTENT%%", this.data.join(""));
 }
 function ResponseHtmlContentObject() {
     this.content = {};
@@ -13,13 +12,11 @@ function ResponseHtmlContentObject() {
     this.content.head = {
         data : [],
         wrap : "<head> %%CONTENT%% </head>",
-        get add() {
-            return function(data) {
-                this.data.push(data);
-            }
+        add : function(data) {
+            this.data.push(data);
         }
     };
-    this.content.head.toHtml = toHtml;
+    this.content.head.toHtml = toHtml.bind(this.content.head);
     this.content.body = {
         data : [],
         wrap : "<body> %%CONTENT%% </body>",
@@ -29,7 +26,7 @@ function ResponseHtmlContentObject() {
             }
         }
     };
-    this.content.body.toHtml = toHtml;
+    this.content.body.toHtml = toHtml.bind(this.content.body);
     this.content.tail = {
         data : [],
         wrap : "<footer> %%CONTENT%% </footer>",
@@ -39,13 +36,20 @@ function ResponseHtmlContentObject() {
             }
         }
     };
-    this.content.tail.toHtml = toHtml;
+    this.content.tail.toHtml = toHtml.bind(this.content.tail);
     this.toHtml = function() {
+    
+        console.log(this.content.wrap.replace("%%CONTENT%%",[
+            this.content.head.toHtml(),
+            this.content.body.toHtml(),
+            this.content.tail.toHtml()
+        ].join("")));
+        
         return this.content.wrap.replace("%%CONTENT%%",[
             this.content.head.toHtml(),
             this.content.body.toHtml(),
             this.content.tail.toHtml()
-        ].join("\n"))
+        ].join(""))
     }
 }
 
@@ -108,28 +112,36 @@ function AbstractServerObject() {
         this.cache.store("requestEndFunc", that.onend.bind(that)());
         console.log("list", that.urlFilters);
         this.serverThread = this.config.defaultCreateServerFunction(function(request, response) {
+        
+            // passes if null or if url contains defined getProperty
             if((that.config.getProperty !== null ? request.url.search(that.config.getProperty) !== -1 : true)) {
      
                 filterHash = that.getUrlHash(url.parse(request.url).pathname);
                 console.log("request", filterHash);
                 getHeaders = that.parseGetHeaders.bind(that)(request.url);
                 
-                response.HTML = new ResponseHtmlContentObject();
+                response.DATA = new ResponseHtmlContentObject();
+                response.DATA.content.head.add("<meta charset='utf-8' />");
+                response.DATA.content.head.add("<base href='" + that.config.fullUrl + "'></base>");
                 response.stopEmit = false;
                 response._end = response.end;
                 response.awaitEmit = false;
                 response.awaitEmitTimeout = 3;
+                response.emitPlain = false;
                 
                 response.end = function(data) {
-                    if(!this.awaitEmit) {
-                        this._end(data);
-                        this.stopEmit = true;
-                    }
+                    this.stopEmit = true;
+                    this.wait(0);
                 }
                 
                 response.wait = function(sec) {
-                    this.awaitEmit = true;
-                    this.awaitEmitTimeout = sec || this.awaitEmitTimeout || 3;
+                    setTimeout(function() {
+                        if(!that.cache.getKey(filterHash + "_DATA")) {
+                            that.cache.store(filterHash + "_DATA", this.emitPlain ? response.DATA.content.body.data.join("") : response.DATA.toHtml());
+                        }
+                        this.write(that.cache.getKey(filterHash + "_DATA"));
+                        this._end();
+                    }.bind(this),  sec * 1000)
                 }
                 
                 if(typeof that.urlFilters[filterHash] !== "undefined") {
@@ -139,15 +151,7 @@ function AbstractServerObject() {
                     that.onrequest.bind(that)(request, response, getHeaders);
                 }
                 
-                if(!response.stopEmit && !response.awaitEmit) {
-                    response.write(response.HTML.toHtml());
-                    response.end(that.cache.getKey("requestEndFunc"));
-                }
                 
-                setTimeout(function() {
-                    this.write(response.HTML.toHtml());
-                    this.end(that.cache.getKey("requestEndFunc"));
-                }.bind(response),  response.awaitEmitTimeout * 1000)
             }
         }).listen(this.config.port); 
         return that;
