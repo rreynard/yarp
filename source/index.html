@@ -3,11 +3,19 @@
         <meta charset="utf-8" />
         <script src="shared/traits.js"></script>
         <script src="shared/yarp.game.def.js"></script>
+        <script src="shared/yarp.game.core.js"></script>
         <script src="shared/yarp.game.storage.js"></script>
         <script src="shared/yarp.game.entity.js"></script>
+        <script src="be/yarp.system.js"></script>
         <script src="shared/yarp.game.main.js"></script>
+        
     </head>
     <body>
-        
+        <script>
+            console.log(GLOBAL.Yarp);
+            var t = new GLOBAL.Yarp.System.MapRuntime();
+            console.log(t);
+            console.log(new GLOBAL.Yarp.Storage.AbstractStorage());
+        </script>
     </body>
 </html>

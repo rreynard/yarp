@@ -142,7 +142,7 @@ function WebSocketBalancer(port) {
     }
     
     this.getSocketIdFromIndex = function(index) {
-        return md5(index).substring(0,8)
+        return md5(index).substring(0, 7)
     }
     
     this.getFirstAvailSocketId = function()  {
@@ -161,7 +161,7 @@ function WebSocketBalancer(port) {
         return null;
     }
     
-    // creates a new Socket in 'this.Socket'
+    // creates a new Socket in 'this.sockets'
     this.addSocket = function() {
     
         this.sockets[this.getSocketIdFromIndex(this.config.cid)] = new WebSocketObject({
