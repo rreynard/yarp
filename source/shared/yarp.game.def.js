@@ -10,6 +10,10 @@ GLOBAL.Yarp.Base.BaseObject = function() {
     return this;
 }
 
+GLOBAL.Yarp.Base.Util = {
+
+};
+
 GLOBAL.Yarp.Storage = {
     AbstractStorage : function() {
         this.$use(GLOBAL.Yarp.Base.BaseObject)
@@ -53,7 +57,7 @@ GLOBAL.Yarp.FE.Cache = function() {
 //reserved for later usage with frontend javascript
 GLOBAL.Yarp.FE.Plugin = {};
 GLOBAL.Yarp.FE.Plugin.Upstream = function() {
-    this.$use(GLOBAL.Yarp.PLugin.Upstream);
+    this.$use(GLOBAL.Yarp.Plugin.Upstream);
 }
 
 
